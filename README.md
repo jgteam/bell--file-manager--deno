@@ -1,6 +1,6 @@
 # File-Manager API (Stack: Deno)
 
-💡 Dieses Repo ist im Zusammenhang mit der besonderen Lernleistung im Fach Informatik von Jannis Günsche entstanden.
+💡 Dieses Repo ist im Zusammenhang mit der [besonderen Lernleistung im Fach Informatik von Jannis Günsche](https://github.com/jgteam/bell--paper) entstanden.
 
 💡 Dieses Projekt wurde auch in zwei anderen Softwarestacks umgesetzt:
 - [File Manager API in Nodejs](https://github.com/jgteam/bell--file-manager--nodejs)
