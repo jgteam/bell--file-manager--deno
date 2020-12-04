@@ -7,7 +7,7 @@
 - [File Manager API in PHP](https://github.com/jgteam/bell--file-manager--php)
 
 ## Vorbereitung
-Benenne `mysql.conf.SAMPLE.ts` zu `mysql.conf.ts` um und ersetze die Platzhalter-Werte mit deinen eigenen.
+Benenne `config.SAMPLE.ts` zu `config.ts` um und ersetze die Platzhalter-Werte mit deinen eigenen.
 Beachte die Tabellenstruktur, welche in dieser Datei beschrieben ist.
 
 ## Benutzung 
