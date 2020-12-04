@@ -1,3 +1,5 @@
+// --- Setup and Dependencies
+
 // https://deno.land/x/oak
 import { Application , Router , send } from "https://deno.land/x/oak/mod.ts";
 
@@ -7,21 +9,26 @@ import { upload } from "https://deno.land/x/oak_upload_middleware/mod.ts";
 // https://deno.land/x/mysql
 import { Client } from "https://deno.land/x/mysql/mod.ts";
 
-import { Mysqlconfig } from "./mysql.conf.ts";
+import { config } from "./config.ts";
 
+const port = config.port;
+const rootURL = config.rootURL;
+
+// --- Mysql
 const con = await new Client().connect({
-    hostname: Mysqlconfig.host,
-    username: Mysqlconfig.user,
-    password: Mysqlconfig.password,
-    db: Mysqlconfig.database
+    hostname: config.host,
+    username: config.user,
+    password: config.password,
+    db: config.database
 });
 
 
-const port = 3000;
 
-// eg: "https://example.com/"
-const rootURL = "http://localhost:3000/";
 
+
+
+
+// --- Functions
 function getFileDownloadURL(fileid: String) {
     return rootURL + "download/" + fileid;
 }
@@ -33,7 +40,7 @@ async function getFilePath(fileid: any) {
     if(!result[0]) {
         return false;
     } else {
-        return result[0].fileurl;
+        return decodeURI(result[0].fileurl);
     }
 
 }
@@ -42,68 +49,91 @@ function poorMysqlStringEscape(string: String) {
     return string.replace("'", "");
 }
 
+
+
+
+
+
+
+// --- Router for "upload" and "download"
 const router = new Router();
-router
-    .post("/upload", upload('filestorage', { extensions: ['txt', 'json'], maxSizeBytes: 20000000, maxFileSizeBytes: 10000000 }),
-        async function(context: any, next: any) {
+router.post("/upload", upload('filestorage', { extensions: ['txt', 'json'], maxSizeBytes: 20000000, maxFileSizeBytes: 10000000 }), async function (context: any, next: any) {
 
-            if (!context.uploadedFiles.file) {
-                context.response.body = {
-                    "status": false,
-                    "message": "No file uploaded"
-                };
+    if (!context.uploadedFiles.file) {
 
-            } else {
+        context.response.status = 400;
+        context.response.body = {
+            "status": false,
+            "message": "No file uploaded"
+        };
 
-                var uploadid = context.uploadedFiles.file.id.split("/");
-                var fileid = Date.now() + "--" + uploadid[uploadid.length - 1];
-                var fileurl = context.uploadedFiles.file.url;
-                var filename = context.uploadedFiles.file.filename;
+    } else {
 
-                con.execute(`INSERT INTO files_deno (id, filename, fileurl) VALUES ('` + poorMysqlStringEscape(fileid) + `', '` + poorMysqlStringEscape(filename) + `', '` + poorMysqlStringEscape(fileurl) + `')`);
+        var uploadid = context.uploadedFiles.file.id.split("/");
+        var fileid = Date.now() + "--" + uploadid[uploadid.length - 1];
+        var fileurl = context.uploadedFiles.file.url;
+        var filename = context.uploadedFiles.file.filename;
 
-                context.response.body = {
-                    "status": true,
-                    "filename": filename,
-                    "download": getFileDownloadURL(fileid)
-                };
-            }
+        con.execute(`INSERT INTO files_deno (id, filename, fileurl) VALUES ('` + poorMysqlStringEscape(fileid) + `', '` + poorMysqlStringEscape(filename) + `', '` + poorMysqlStringEscape(fileurl) + `')`);
 
-        },
-    )
-    .get("/download/:fileid", async function(context) {
+        context.response.status = 200;
+        context.response.body = {
+            "status": true,
+            "filename": filename,
+            "download": getFileDownloadURL(fileid)
+        };
+    }
 
-        var fileid = context.params.fileid;
+}).get("/download/:fileid", async function(context) {
 
-        var filepath = await getFilePath(fileid);
+    var fileid = context.params.fileid;
 
-        if(filepath === false) {
+    var filepath = await getFilePath(fileid);
 
-            context.response.body = {
-                "status": false,
-                "message": "File not found"
-            };
+    if (filepath === false) {
 
-        } else {
+        context.response.status = 404;
+        context.response.body = {
+            "status": false,
+            "message": "File not found"
+        };
 
-            var fullFilepath = Deno.cwd() + "/" + filepath;
-            var filename = fullFilepath.split("/")[fullFilepath.split("/").length-1];
+    } else {
 
-            // https://stackoverflow.com/a/62709235
-            var fileContent = await Deno.readFile(fullFilepath);
+        var fullFilepath = Deno.cwd() + "/" + filepath;
+        var filename = fullFilepath.split("/")[fullFilepath.split("/").length - 1];
 
-            context.response.body = fileContent;
-            context.response.headers.set('Content-Type', 'plain/text');
-            context.response.headers.set('Content-disposition', 'attachment; filename="' + filename + '"');
+        //context.response.body = (filepath);
+        //return;
 
-        }
+        // https://stackoverflow.com/a/62709235
+        var fileContent = await Deno.readFile(fullFilepath);
 
-    });
+
+        context.response.status = 200;
+        context.response.body = fileContent;
+        context.response.headers.set('Content-Type', 'plain/text');
+        context.response.headers.set('Content-disposition', 'attachment; filename="' + filename + '"');
+
+    }
+
+}).get("/download", async function (context) {
+    context.response.status = 400;
+    context.response.body = {
+        "status": false,
+        "message": "Fileid not defined"
+    };
+});
+
+
+// --- Middlewares
 
 const app = new Application();
 app.use(router.routes());
 app.use(router.allowedMethods());
 
+
+// --- Static files
 app.use(async function(context) {
     await send(context, context.request.url.pathname, {
         root: Deno.cwd() + "/static",
@@ -111,6 +141,10 @@ app.use(async function(context) {
     });
 });
 
+
+
+
+// --- Start listening
 await app.listen({ port: port });
 
 

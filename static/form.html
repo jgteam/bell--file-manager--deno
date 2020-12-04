@@ -39,13 +39,15 @@
                     encode: true,
                     contentType: false,
                     processData: false
-                })
+                }).done(function (res) {
 
-                    .done(function(res) {
+                    $("#responses").append("<tr><td>" + JSON.stringify(res) + "</td></tr>");
 
-                        $("#responses").append("<tr><td>" + JSON.stringify(res) + "</td></tr>")
+                }).fail(function (res) {
 
-                    });
+                    $("#responses").append("<tr><td style='color:red;'>" + JSON.stringify(res.responseJSON) + "</td></tr>");
+
+                });
 
             });
 
