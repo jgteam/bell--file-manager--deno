@@ -1,36 +1,50 @@
-<html>
+<html lang="de">
     <head>
+
         <meta charset="utf-8">
         <title>HTML Upload Form</title>
+
+        <!-- jQuery import. Wird genutzt um über AJAX das Formular abzuschicken und anschließend die Antwort in die Tabelle zu schreiben-->
         <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+
     </head>
     <body>
-        <h1>HTML Upload Form</h1>
+
+        <h1>HTML Upload Form (Stack: Deno)</h1>
+
+        <!-- Formular, für den Dateiupload: -->
         <form id="uploadform" method="post" enctype="multipart/form-data">
             <label>File: (text/*)<input id="file" name="file" type="file" size="50" accept="text/*"></label>
             <button>Über AJAX senden</button>
         </form>
 
+        <!-- Tabelle, in welche zukünftige Antworten geschrieben werden -->
         <table id="responses" border="1">
             <tr>
                 <th>Responses:</th>
             </tr>
         </table>
+
     </body>
     <script>
 
         $(document).ready(function() {
 
+            // Wird ausgeführt, wenn das Formular abgeschickt werden soll
             $('#uploadform').submit(function(e) {
 
+                // Verhindert das standardmäßige Abschicken des Formulares, über das öffnen einer neuen Seite mit den übergebenen Parametern
                 e.preventDefault();
 
+                // Schreibt die Datei in ein FormData-Element für die spätere Übergabe.
                 // https://makitweb.com/how-to-upload-image-file-using-ajax-and-jquery
                 var formdata = new FormData();
                 var files = $('#file')[0].files;
                 if(files.length > 0)
                     formdata.append('file',files[0]);
 
+                // POST-API-Call
+                // Übergibt schließlich die Datei
                 $.ajax({
                     type: 'POST',
                     url: 'upload',
@@ -41,10 +55,12 @@
                     processData: false
                 }).done(function (res) {
 
+                    // Schreibt die Antwort nach Erfolg in die Tabelle
                     $("#responses").append("<tr><td>" + JSON.stringify(res) + "</td></tr>");
 
                 }).fail(function (res) {
 
+                    // Schreibt die Antwort nach einem Fehlschlag in die Tabelle
                     $("#responses").append("<tr><td style='color:red;'>" + JSON.stringify(res.responseJSON) + "</td></tr>");
 
                 });
