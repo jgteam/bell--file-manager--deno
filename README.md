@@ -5,6 +5,7 @@
 💡 Dieses Projekt wurde auch in zwei anderen Softwarestacks umgesetzt:
 - [File Manager API in Nodejs](https://github.com/jgteam/bell--file-manager--nodejs)
 - [File Manager API in PHP](https://github.com/jgteam/bell--file-manager--php)
+- [File Manager API in PHP (ohne JavaScript)](https://github.com/jgteam/bell--file-manager--php--nojs)
 
 ## Stack
 
