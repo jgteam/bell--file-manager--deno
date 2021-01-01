@@ -5,6 +5,21 @@
 💡 Dieses Projekt wurde auch in zwei anderen Softwarestacks umgesetzt:
 - [File Manager API in Nodejs](https://github.com/jgteam/bell--file-manager--nodejs)
 - [File Manager API in PHP](https://github.com/jgteam/bell--file-manager--php)
+- [File Manager API in PHP (ohne JavaScript)](https://github.com/jgteam/bell--file-manager--php--nojs)
+
+## Stack
+
+Es handelt sich hier um eine **MOD**(*kein etablierter Stackname!*)-Stack Applikation.
+
+- M: MariaDB (MySQL, etc)
+- O: Oak (Deno-Module)
+- D: Deno
+
+Weitere Software, welche zum Einsatz kommt:
+
+- oak_upload_middleware (Deno-Module)
+- mysql (Deno-Module)
+- jQuery
 
 ## Vorbereitung
 Benenne `config.SAMPLE.ts` zu `config.ts` um und ersetze die Platzhalter-Werte mit deinen eigenen.
