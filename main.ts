@@ -26,7 +26,7 @@ const con = await new Client().connect({
 
 // --- Functions
 // Gibt die URL für den Dateidownload zurück
-function getFileDownloadURL(fileid: String) {
+function getFileDownloadURL(fileid: String): String {
     return rootURL + "download/" + fileid;
 }
 
