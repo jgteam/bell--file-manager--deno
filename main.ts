@@ -9,6 +9,17 @@ import { upload } from "https://deno.land/x/oak_upload_middleware/mod.ts";
 // https://deno.land/x/mysql
 import { Client } from "https://deno.land/x/mysql/mod.ts";
 
+// https://deno.land/std/hash
+import { createHash } from "https://deno.land/std/hash/mod.ts";
+
+// https://github.com/denjucks/session
+// https://deno.land/x/session
+// import { Session } from "https://deno.land/x/session/mod.ts";
+
+// Sessions (https://github.com/denjucks/session#usage)
+// const session = new Session({ framework: "oak" });
+// await session.init();
+
 // Config-Variablen laden
 import { config } from "./config.ts";
 
@@ -50,6 +61,28 @@ function preventSQL_Injection(string: String) {
     return string.replace("'", "");
 }
 
+// Funktion, welche die md5-Checksum einer Datei zurückgibt
+// https://stackoverflow.com/a/65334262
+async function md5(filepath: any) {
+
+    var fullfilepath = Deno.cwd() + "/" + filepath;
+
+    const hash = createHash("md5");
+
+    const file = await Deno.open(fullfilepath);
+
+    for await (const chunk of Deno.iter(file)) {
+        hash.update(chunk);
+    }
+
+    var out = hash.toString();
+
+    Deno.close(file.rid);
+
+    return out;
+
+}
+
 // --- Router for "upload" and "download"
 const router = new Router();
 // upload -> upload('filestorage', {...})-Funktion vom "oak_upload_middleware" kümmert sich um die Dateispeicherung
@@ -69,17 +102,21 @@ router.post("/upload", upload('filestorage', { extensions: ['txt', 'json'], maxS
     } else {
         // Falls eine Datei über POST übergeben wurde
 
+        var file = context.uploadedFiles.file;
+
         // Teilt die uploadid (zB: filestorage/2020/12/4/22/23/55/18d1e7fb-cd0b-4efd-aac3-506c0b7c49f2) an den Schrägstrichen,
         // damit man im nächsten Schritt die UUID rausfiltern kann
-        var uploadid = context.uploadedFiles.file.id.split("/");
+        var uploadid = file.id.split("/");
 
         // Generiert eine einzigartige ID (fileid) mit der Hilfe von der schon generierten UUID von dem oak_upload_middleware
         var fileid = Date.now() + "--" + uploadid[uploadid.length - 1];
 
         // Dateispeicherpfad auf dem Server
-        var fileurl = context.uploadedFiles.file.url;
+        var fileurl = file.url;
         // Dateiname
-        var filename = context.uploadedFiles.file.filename;
+        var filename = file.filename;
+
+        console.log(JSON.stringify(file));
 
         // fileid, filename und fileurl in die Datenbank aufnehmen
         con.execute(`INSERT INTO files_deno (id, filename, fileurl) VALUES ('` + preventSQL_Injection(fileid) + `', '` + preventSQL_Injection(filename) + `', '` + preventSQL_Injection(fileurl) + `')`);
@@ -88,8 +125,12 @@ router.post("/upload", upload('filestorage', { extensions: ['txt', 'json'], maxS
         context.response.status = 200;
         context.response.body = {
             "status": true,
+            "download": getFileDownloadURL(fileid),
             "filename": filename,
-            "download": getFileDownloadURL(fileid)
+            // Weitere Eigenschaften
+            "filetype": file.type,
+            "filesize": file.size,
+            "md5": await md5(fileurl)
         };
 
     }
@@ -144,6 +185,44 @@ router.post("/upload", upload('filestorage', { extensions: ['txt', 'json'], maxS
         "status": false,
         "message": "Fileid not defined"
     };
+}).get("/getUploadHistory", async function (context) {
+    // Upload-Verlauf übermitteln
+
+    // context.state.session.set(...);
+    // context.state.session.get(...);
+
+    // => Benutzung von Sessions erzeugt einen "500 internal server error"...
+
+    context.response.status = 501;
+    context.response.body = {
+        "status": false,
+        "message": "Not implemented"
+    };
+
+}).get("/getDownloadHistory", async function (context) {
+    // Download-Verlauf übermitteln
+
+    // context.state.session.set(...);
+    // context.state.session.get(...);
+
+    // => Benutzung von Sessions erzeugt einen "500 internal server error"...
+
+    context.response.status = 501;
+    context.response.body = {
+        "status": false,
+        "message": "Not implemented"
+    };
+
+}).get("/history", async function (context) {
+    // Verlaufsseite (sigle static file)
+
+    // hist.html einlesen
+    var fileContent = await Deno.readFile(Deno.cwd() + "/hist.html");
+
+    // hist.html übermitteln
+    context.response.status = 200;
+    context.response.body = fileContent;
+    context.response.headers.set('Content-Type', 'text/html');
 });
 
 // --- Middlewares
@@ -151,11 +230,15 @@ router.post("/upload", upload('filestorage', { extensions: ['txt', 'json'], maxS
 // Webapp erstellen
 const app = new Application();
 
+//app.use(session.use()(session));
+
 // Router aktivieren
 app.use(router.routes());
 app.use(router.allowedMethods());
 
 // --- Static files
+// Hier ist nur der Ordner "static"
+// Die hist.html wird noch oben bei den Routen übermittelt
 app.use(async function(context) {
     await send(context, context.request.url.pathname, {
         // Sendet beim aufrufen der rootURL die Dateien (form.html) aus dem static Ordner, falls kein andere Route greift

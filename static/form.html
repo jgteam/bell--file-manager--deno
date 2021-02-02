@@ -12,10 +12,19 @@
 
         <h1>HTML Upload Form (Stack: Deno)</h1>
 
+        <!-- Links zu den Verläufen -->
+
+        <hr/>
+        <a href="history#upload">&uparrow; Upload History</a> &verbar; <a href="history#download">&downarrow; Download History</a>
+        <hr/>
+
         <!-- Formular, für den Dateiupload: -->
         <form id="uploadform" method="post" enctype="multipart/form-data">
-            <label>File: (text/*)<input id="file" name="file" type="file" size="50" accept="text/*"></label>
-            <button>Über AJAX senden</button>
+            <fieldset>
+                <legend>Form</legend>
+                <label>File: (text/*)<input id="file" name="file" type="file" size="50" accept="text/*"></label>
+                <button>Über AJAX senden</button>
+            </fieldset>
         </form>
 
         <!-- Tabelle, in welche zukünftige Antworten geschrieben werden -->

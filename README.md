@@ -19,6 +19,8 @@ Weitere Software, welche zum Einsatz kommt:
 
 - oak_upload_middleware (Deno-Module)
 - mysql (Deno-Module)
+- hash (Deno-Modul)
+- session (Deno-Modul)
 - jQuery
 
 ## Vorbereitung
