@@ -52,7 +52,7 @@ deno run --allow-net --allow-write --allow-read --unstable main.ts
 **Upload-Responses:**
 Beschreibung | HTTP-Status-Code | JSON-Response Beispiel
 --- | --- | ---
-Erfolgreicher Upload | 200 | `{"status":true,"download":"http://localhost/download/1234567890--12ab3456-abcd-12a3-a123-123ab45c6d7e","filename":"filename.txt","filetype":"text/plain","filesize":16000}`
+Erfolgreicher Upload | 200 | `{"status":true,"download":"http://localhost/download/1234567890--12ab3456-abcd-12a3-a123-123ab45c6d7e","filename":"filename.txt","filetype":"text/plain","filesize":16000,"md5":"ef16af3769aa57977d1555eee6575af3"}`
 Upload fehlgeschlagen, da keine Datei durch den `file`-Parameter bereitgestellt wurde | 400 | `{"status":false,"message":"No file uploaded"}`
 *Internal server error* | 500 | `{"status":false,"message":"Internal server error"}`
 
