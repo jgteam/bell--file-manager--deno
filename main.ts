@@ -45,7 +45,7 @@ function getFileDownloadURL(fileid: String): String {
 async function getFilePath(fileid: any) {
 
     // SELECT-QUERY ausführen
-    var result = await con.query("SELECT * FROM files_deno WHERE id = '" + preventSQL_Injection(fileid) + "'");
+    var result = await con.query("SELECT * FROM files_deno WHERE id = ?", [fileid]);
 
     // Ergebnis überprüfen
     if(!result[0]) {
@@ -54,11 +54,6 @@ async function getFilePath(fileid: any) {
         return decodeURI(result[0].fileurl);
     }
 
-}
-
-// Verhindert (halbwegs...) eine SQL-Injektion
-function preventSQL_Injection(string: String) {
-    return string.replace("'", "");
 }
 
 // Funktion, welche die md5-Checksum einer Datei zurückgibt
@@ -116,10 +111,8 @@ router.post("/upload", upload('filestorage', { extensions: ['txt', 'json'], maxS
         // Dateiname
         var filename = file.filename;
 
-        console.log(JSON.stringify(file));
-
         // fileid, filename und fileurl in die Datenbank aufnehmen
-        con.execute(`INSERT INTO files_deno (id, filename, fileurl) VALUES ('` + preventSQL_Injection(fileid) + `', '` + preventSQL_Injection(filename) + `', '` + preventSQL_Injection(fileurl) + `')`);
+        con.execute('INSERT INTO files_deno (id, filename, fileurl) VALUES (?, ?, ?)', [fileid, filename, fileurl]);
 
         // Erfolgs-Antwort erstellen
         context.response.status = 200;
